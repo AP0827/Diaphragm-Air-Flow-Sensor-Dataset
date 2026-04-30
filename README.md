@@ -26,13 +26,15 @@ Pressure -> displacement -> dynamic displacement under vibration -> voltage
 
 with resonance, Q dependence, and structured bias terms.
 
+Each formula below describes one step in that chain. The goal is to show how the true pressure signal is transformed by the sensor mechanics and then distorted by vibration before it becomes the measured voltage.
+
 ### 2.1 Displacement decomposition
 
 $$
 x_{total} = x_{pressure} + x_{vibration}
 $$
 
-This is the core structural choice.
+This means the sensor diaphragm moves because of two effects at the same time: the pressure being measured and the external vibration. We model them as additive in displacement, because vibration changes the diaphragm position before the voltage is read out.
 
 ### 2.2 Pressure to displacement mapping (nonlinear, regime-blended)
 
@@ -51,7 +53,7 @@ where:
 - $x_{free}(P) \propto \sqrt{P}$
 - $x_{cont}(P) \propto P^{0.92}$
 
-This enforces nonlinearity and transition behavior.
+The first equation creates a smooth transition weight between two pressure regimes. When pressure is low, the free-regime term dominates; when pressure is high, the continuum-regime term dominates. The second equation blends the two displacement laws so the mapping stays smooth instead of switching abruptly.
 
 ### 2.3 Pressure-dependent dissipation proxy
 
@@ -59,7 +61,7 @@ $$
 loss_{pressure} = f(P)
 $$
 
-with the same regime blend idea. This represents pressure-dependent damping/load term.
+with the same regime blend idea. This represents pressure-dependent damping and loading inside the sensor. In practice, it is a proxy for how gas conditions change the energy loss in the diaphragm system.
 
 ### 2.4 Q factor dependence on dissipation
 
@@ -68,6 +70,8 @@ Q(P) = \frac{Q_{base}}{1 + c \cdot loss_{pressure}}
 $$
 
 clamped to a practical range.
+
+This says that as dissipation increases, the resonator becomes less sharp and less sensitive. A higher $Q$ means less damping and stronger resonance; a lower $Q$ means more energy is lost each cycle.
 
 ### 2.5 Resonance gain
 
@@ -79,7 +83,7 @@ $$
 gain_{res} = \frac{1}{\sqrt{(1-r^2)^2 + (r/Q)^2}}
 $$
 
-Only vibration near resonance becomes strongly amplified.
+The ratio $r$ compares the vibration frequency to the sensor’s natural frequency. When $r$ is close to 1, the vibration is near resonance and the gain becomes large. This is why a sensor can be strongly disturbed by vibration at some frequencies but barely affected at others.
 
 ### 2.6 Vibration-induced displacement
 
@@ -92,7 +96,7 @@ where:
 - $g(Q) = Q/Q_{ref}$
 - $w_{bw}$ is a soft resonance-bandwidth weight
 
-Acceleration is slowly modulated over time to avoid trivial constant-excitation sequences.
+This equation converts external acceleration into extra diaphragm displacement. The larger the vibration amplitude, the larger the disturbance, but only if the vibration is near resonance and the quality factor allows strong coupling. The slowly varying acceleration makes the sequence more realistic than a constant vibration signal.
 
 Bandwidth weighting enforces narrow-band sensitivity around resonance:
 
@@ -110,6 +114,8 @@ $$
 
 with $z = (|f_{vib}-f_0| - k\cdot bw)/(k\cdot bw)$.
 
+The bandwidth term limits strong coupling to a narrow frequency region around resonance. Inside that region, the disturbance is fully active; outside it, the effect decays smoothly instead of disappearing suddenly.
+
 ### 2.7 Dynamic response (sensor memory)
 
 $$
@@ -122,6 +128,8 @@ $$
 
 with $\alpha = dt/\max(tau, dt)$.
 
+This gives the sensor memory or lag. A larger $\tau$ means the diaphragm responds more slowly and the current output depends more on past states. The update equation is a first-order relaxation toward the instantaneous displacement.
+
 ### 2.8 Structured bias terms
 
 $$
@@ -129,6 +137,8 @@ drive\_energy\_proxy = f(P) + P_m + P_r
 $$
 
 where $P_m$ and $P_r$ are slow-varying sequence-level drift terms (not i.i.d. white noise).
+
+This proxy represents the energy-like quantity that the NASA discussion emphasizes. It is not pure random error; it combines the pressure-dependent term with structured mechanical and electrical loss components that drift over time.
 
 ### 2.9 Voltage generation
 
@@ -141,6 +151,8 @@ V_{measured} = gain \cdot x_{dyn} + offset + 0.10P_m + 0.08P_r + k_e \cdot drive
 $$
 
 with small Gaussian measurement noise $\epsilon$.
+
+The clean voltage is the ideal pressure-only readout. The measured voltage uses the dynamic displacement instead of the pure pressure displacement, so it includes vibration effects, drift, and a small amount of random measurement noise. This is the final synthetic sensor output used in the CSV.
 
 ## 3) Parameter sampling strategy
 
