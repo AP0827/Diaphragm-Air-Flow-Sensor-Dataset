@@ -1,0 +1,13 @@
+{
+  "feature_names": [
+    "acc_x_mps2",
+    "acc_y_mps2",
+    "acc_z_mps2"
+  ],
+  "intercept_v": -0.2164293805449872,
+  "coefficients_v_per_ms2": {
+    "acc_x_mps2": 0.018141229433121797,
+    "acc_y_mps2": -0.014127731858649467,
+    "acc_z_mps2": 0.02207312760868499
+  }
+}

@@ -1,304 +1,131 @@
 # Diaphragm-Air-Flow-Sensor-Dataset
 # Synthetic Dataset Generation Documentation
 
-This document describes the full physics-informed generation process implemented in [generate_nasa_synthetic_dataset.py](generate_nasa_synthetic_dataset.py), why each term exists, and how trustworthy the generated data is for real-world modeling.
+## Diaphragm Strain-Gauge Calibration Dataset
 
-Important modeling note:
+This project now uses a simpler calibration workflow:
 
-NASA discusses an energy-like observable proportional to $V_0V_1/x_1$. In this generator, voltage is modeled as a displacement-readout surrogate (with additional energy-proxy coupling), not as the raw NASA energy observable itself.
+1. Measure tri-axial acceleration with an accelerometer.
+2. Measure the diaphragm strain-gauge voltage at the same time.
+3. Learn how much of the voltage is caused by acceleration.
+4. Subtract the predicted acceleration voltage from the measured reading to estimate the true signal.
 
-## 1) Objective
+The key idea is that, for small strains, the strain-gauge bridge output is approximately linear. That makes linear regression a good first calibration model.
 
-Build a synthetic dataset for learning:
+## 1) Measurement model
 
-- Inputs: measured voltage and vibration conditions
-- Target: true pressure
-
-under the NASA-consistent principle:
-
-Pressure is corrupted by vibration at the displacement level, not by post-measurement additive white noise.
-
-## 2) Physics mapping used
-
-The generator follows this chain:
-
-Pressure -> displacement -> dynamic displacement under vibration -> voltage
-
-with resonance, Q dependence, and structured bias terms.
-
-Each formula below describes one step in that chain. The goal is to show how the true pressure signal is transformed by the sensor mechanics and then distorted by vibration before it becomes the measured voltage.
-
-### 2.1 Displacement decomposition
+Let the accelerometer output be the acceleration vector
 
 $$
-x_{total} = x_{pressure} + x_{vibration}
+\mathbf{a}(t) = \begin{bmatrix} a_x(t) \\ a_y(t) \\ a_z(t) \end{bmatrix}.
 $$
 
-This means the sensor diaphragm moves because of two effects at the same time: the pressure being measured and the external vibration. We model them as additive in displacement, because vibration changes the diaphragm position before the voltage is read out.
+This is the input feature vector used for calibration.
 
-### 2.2 Pressure to displacement mapping (nonlinear, regime-blended)
-
-We blend low-pressure and high-pressure response regimes:
+The diaphragm strain is approximated as a linear function of the three axes:
 
 $$
-w_{cont}(P) = \frac{1}{1 + (P_t/P)^s}
+\epsilon_g(t) = k_x a_x(t) + k_y a_y(t) + k_z a_z(t).
 $$
 
-$$
-x_{pressure}(P) = (1-w_{cont}) \cdot x_{free}(P) + w_{cont} \cdot x_{cont}(P)
-$$
+This says that acceleration bends the diaphragm and produces strain in the gauge.
 
-where:
-
-- $x_{free}(P) \propto \sqrt{P}$
-- $x_{cont}(P) \propto P^{0.92}$
-
-The first equation creates a smooth transition weight between two pressure regimes. When pressure is low, the free-regime term dominates; when pressure is high, the continuum-regime term dominates. The second equation blends the two displacement laws so the mapping stays smooth instead of switching abruptly.
-
-### 2.3 Pressure-dependent dissipation proxy
+For a Wheatstone-bridge strain gauge, the small-signal voltage is approximately proportional to strain:
 
 $$
-loss_{pressure} = f(P)
+V_{acc}(t) \approx V_{exc} \cdot \frac{GF}{4} \cdot \epsilon_g(t).
 $$
 
-with the same regime blend idea. This represents pressure-dependent damping and loading inside the sensor. In practice, it is a proxy for how gas conditions change the energy loss in the diaphragm system.
+Here:
 
-### 2.4 Q factor dependence on dissipation
+- $V_{exc}$ is the bridge excitation voltage
+- $GF$ is the gauge factor
+- the factor $1/4$ comes from the small-signal bridge approximation
 
-$$
-Q(P) = \frac{Q_{base}}{1 + c \cdot loss_{pressure}}
-$$
-
-clamped to a practical range.
-
-This says that as dissipation increases, the resonator becomes less sharp and less sensitive. A higher $Q$ means less damping and stronger resonance; a lower $Q$ means more energy is lost each cycle.
-
-### 2.5 Resonance gain
+After expanding the constants, the acceleration-induced voltage can be written in regression form:
 
 $$
-r = \frac{f_{vib}}{f_0}
+V_{acc}(t) = \beta_0 + \beta_x a_x(t) + \beta_y a_y(t) + \beta_z a_z(t) + \varepsilon(t).
 $$
 
-$$
-gain_{res} = \frac{1}{\sqrt{(1-r^2)^2 + (r/Q)^2}}
-$$
+This is the model we train.
 
-The ratio $r$ compares the vibration frequency to the sensor’s natural frequency. When $r$ is close to 1, the vibration is near resonance and the gain becomes large. This is why a sensor can be strongly disturbed by vibration at some frequencies but barely affected at others.
-
-### 2.6 Vibration-induced displacement
+The measured voltage is then:
 
 $$
-x_{vibration} = k_a \cdot a(t) \cdot gain_{res} \cdot g(Q) \cdot w_{bw}
+V_{meas}(t) = V_{true}(t) + V_{acc}(t).
 $$
 
-where:
-
-- $g(Q) = Q/Q_{ref}$
-- $w_{bw}$ is a soft resonance-bandwidth weight
-
-This equation converts external acceleration into extra diaphragm displacement. The larger the vibration amplitude, the larger the disturbance, but only if the vibration is near resonance and the quality factor allows strong coupling. The slowly varying acceleration makes the sequence more realistic than a constant vibration signal.
-
-Bandwidth weighting enforces narrow-band sensitivity around resonance:
+So the corrected estimate of the true voltage is:
 
 $$
-bw = f_0/Q
+\hat V_{true}(t) = V_{meas}(t) - \hat V_{acc}(t).
 $$
 
-$$
-w_{bw} =
-\begin{cases}
-1, & |f_{vib} - f_0| \le k \cdot bw \\
-\exp\{-3z^2\}, & \text{otherwise}
-\end{cases}
-$$
+That subtraction is the whole calibration idea.
 
-with $z = (|f_{vib}-f_0| - k\cdot bw)/(k\cdot bw)$.
+## 2) Linear regression objective
 
-The bandwidth term limits strong coupling to a narrow frequency region around resonance. Inside that region, the disturbance is fully active; outside it, the effect decays smoothly instead of disappearing suddenly.
-
-### 2.7 Dynamic response (sensor memory)
+Given training samples $(a_x^{(i)}, a_y^{(i)}, a_z^{(i)}, V_{acc}^{(i)})$, the linear model parameters are chosen to minimize mean squared error:
 
 $$
-tau = \frac{Q}{\pi f_0}
+\hat\beta = \arg\min_{\beta} \sum_{i=1}^{N} \left(V_{acc}^{(i)} - (\beta_0 + \beta_x a_x^{(i)} + \beta_y a_y^{(i)} + \beta_z a_z^{(i)})\right)^2.
 $$
 
-$$
-x_{dyn}[t] = x_{dyn}[t-1] + \alpha \cdot (x_{inst}[t] - x_{dyn}[t-1])
-$$
+This gives the best straight-line fit in the least-squares sense.
 
-with $\alpha = dt/\max(tau, dt)$.
+## 3) Dataset columns
 
-This gives the sensor memory or lag. A larger $\tau$ means the diaphragm responds more slowly and the current output depends more on past states. The update equation is a first-order relaxation toward the instantaneous displacement.
+The synthetic dataset is stored in [synthetic_pressure_vibration_dataset.csv](synthetic_pressure_vibration_dataset.csv) and contains:
 
-### 2.8 Structured bias terms
+- `sample_id`: row index
+- `time_s`: timestamp for the sample
+- `acc_x_mps2`: x-axis acceleration
+- `acc_y_mps2`: y-axis acceleration
+- `acc_z_mps2`: z-axis acceleration
+- `true_voltage_v`: the underlying diaphragm voltage before acceleration distortion
+- `accel_induced_voltage_v`: voltage contribution caused by acceleration
+- `measured_voltage_v`: observed voltage, equal to true plus acceleration-induced voltage
 
-$$
-drive\_energy\_proxy = f(P) + P_m + P_r
-$$
+## 4) Training script
 
-where $P_m$ and $P_r$ are slow-varying sequence-level drift terms (not i.i.d. white noise).
+Train the regression model with [train_acceleration_linear_regression.py](train_acceleration_linear_regression.py).
 
-This proxy represents the energy-like quantity that the NASA discussion emphasizes. It is not pure random error; it combines the pressure-dependent term with structured mechanical and electrical loss components that drift over time.
+The script:
 
-### 2.9 Voltage generation
+1. Loads the CSV.
+2. Fits a linear regression model to predict `accel_induced_voltage_v` from the three acceleration axes.
+3. Evaluates the model on a holdout split.
+4. Subtracts the predicted acceleration voltage from `measured_voltage_v`.
+5. Reports how close the corrected voltage is to `true_voltage_v`.
 
-$$
-V_{clean} = gain \cdot x_{pressure} + offset
-$$
+## 5) Why this method is appropriate
 
-$$
-V_{measured} = gain \cdot x_{dyn} + offset + 0.10P_m + 0.08P_r + k_e \cdot drive\_energy\_proxy + \epsilon
-$$
+This approach matches the sensor physics at small strain:
 
-with small Gaussian measurement noise $\epsilon$.
+- strain gauges are approximately linear over a normal operating range
+- the bridge output is proportional to strain
+- acceleration can be modeled as a disturbance term that enters the voltage reading
+- tri-axial acceleration gives the model enough information to learn direction-dependent coupling
 
-The clean voltage is the ideal pressure-only readout. The measured voltage uses the dynamic displacement instead of the pure pressure displacement, so it includes vibration effects, drift, and a small amount of random measurement noise. This is the final synthetic sensor output used in the CSV.
+That makes the model simple, explainable, and practical for calibration.
 
-## 3) Parameter sampling strategy
+## 6) Run instructions
 
-Each sequence samples fixed hardware/environment parameters to mimic sensor-to-sensor and condition-to-condition variability:
+Generate the dataset:
 
-- Natural frequency $f_0$: 250 to 1400 Hz
-- Baseline Q: 40 to 220
-- Vibration frequency: 15 to 2200 Hz
-- Base acceleration: 0.2 to 26 m/s^2
-- Gain and offset randomized per sequence
-- Pressure trajectory includes slope plus low-frequency oscillation
+```bash
+python3 generate_accelerometer_strain_dataset.py --out synthetic_pressure_vibration_dataset.csv
+```
 
-This creates broad but structured coverage.
+Train the model:
 
-## 4) Output schema and meaning
+```bash
+python3 train_acceleration_linear_regression.py --data synthetic_pressure_vibration_dataset.csv
+```
 
-Generated CSV columns:
+## 7) Short presentation version
 
-- sequence_id: sequence identity for grouped splits
-- time_step, time_s: temporal index
-- pressure_true_pa: regression target
-- measured_voltage_v: distorted observable
-- clean_voltage_v: no-vibration reference channel
-- vibration_accel_mps2, vibration_freq_hz: disturbance descriptors
-- f0_hz, q_factor, resonance_gain: dynamic sensitivity descriptors
-- resonance_bandwidth_weight: narrow-band coupling strength factor
-- x_pressure_um, x_vibration_um, x_total_dyn_um: latent physics states
-- x_vibration_to_x_pressure_ratio: corruption-level indicator
-- pm, pr: structured bias components
-- drive_energy_proxy: pressure-plus-loss proxy feature
-- d_xpressure_dt: pressure-state derivative proxy
+You can describe the method like this:
 
-## 5) Data split guidance
-
-Do not random-row split. Use grouped splits by sequence_id.
-
-- Train: 70%
-- Validation: 15%
-- Test: 15%
-
-This avoids leakage from temporal adjacency.
-
-## 6) Modeling guidance
-
-Baseline regressors:
-
-- Gradient boosting regressor
-- Random forest regressor
-
-Temporal models:
-
-- 1D CNN
-- LSTM or GRU
-
-Core input set:
-
-- measured_voltage_v
-- vibration_accel_mps2
-- vibration_freq_hz
-
-Useful extended set:
-
-- f0_hz
-- q_factor
-- resonance_gain
-- resonance_bandwidth_weight
-- drive_energy_proxy
-- x_vibration_to_x_pressure_ratio
-
-## 7) Realism assessment: does it make sense with real data?
-
-Short answer: yes for structure, not yet for absolute metrology.
-
-### 7.1 What is physically credible already
-
-- Distortion enters at displacement before readout.
-- Vibration impact increases near resonance.
-- Sensitivity depends on pressure through Q and dissipation.
-- Bias is structured drift, not only random noise.
-- Dynamic lag exists through $\tau = Q/(\pi f_0)$.
-
-These are the right causal ingredients.
-
-### 7.2 What is still synthetic/assumed
-
-- Coefficients are plausible but not calibrated to one exact hardware unit.
-- Gas composition, temperature, packaging modes, and electronic transfer details are simplified.
-- Excitation spectrum is parametric, not measured PSD from a shaker profile.
-- Bias drift laws are heuristic sinusoidal forms.
-
-Therefore this dataset is best treated as a physics-informed pretraining and ablation dataset, not a final certification dataset.
-
-### 7.3 Quantitative sanity checks on current generated CSV
-
-From [synthetic_pressure_vibration_dataset.csv](synthetic_pressure_vibration_dataset.csv):
-
-- Rows: 28,800 (+ header)
-- Pressure range: 50 to 120,000 Pa
-- Q range: 8.68 to 191.23
-- Resonance gain range: 0.020 to 57.98
-- Mean resonance bandwidth weight: 0.069
-- Fraction with non-negligible bandwidth weight (>1e-6): 0.124
-- Mean ratio $|x_{vibration}|/|x_{pressure}|$: 0.035
-- Corr(pressure, clean_voltage): 0.740
-- Corr(pressure, measured_voltage): 0.710
-- Corr(|measured-clean|, resonance_gain): 0.430
-- Sequence-wise monotonic tendency of clean voltage vs pressure: 1.0 mean
-
-Interpretation:
-
-- The corrupted channel is measurably less pressure-faithful than the clean channel.
-- Distortion rises with resonance gain as expected.
-- Pressure-to-clean-voltage relation remains physically ordered.
-
-So the generated data is internally consistent with the intended physics behavior.
-
-## 8) Calibration path to make it closer to real deployment
-
-Use this sequence when real data becomes available:
-
-1. Fit static pressure-to-clean-voltage coefficients from bench calibration.
-2. Fit resonance transfer shape using shaker sweep around measured $f_0$.
-3. Fit Q vs pressure from bandwidth measurements at multiple pressures.
-4. Fit drift model $P_m, P_r$ from long stable holds.
-5. Re-run generation with calibrated coefficient priors.
-6. Evaluate sim-to-real gap on held-out real segments.
-
-## 9) Run instructions
-
-Generate CSV:
-
-python3 generate_nasa_synthetic_dataset.py --out synthetic_pressure_vibration_dataset.csv
-
-Main options:
-
-- --num-sequences
-- --seq-len
-- --dt
-- --seed
-
-## 10) Recommended documentation use in your report
-
-Use this synthetic process as:
-
-- A physics-informed data engine for controlled experiments
-- A way to test whether models can separate pressure from vibration coupling
-- A pretraining source before limited real-data fine-tuning
-
-Avoid claiming direct field-level absolute accuracy until coefficients are calibrated to real hardware measurements.
+"We measure acceleration in three axes and learn a linear calibration model that predicts the voltage caused by vibration. During testing, we subtract that predicted vibration voltage from the sensor reading to estimate the true diaphragm signal."
