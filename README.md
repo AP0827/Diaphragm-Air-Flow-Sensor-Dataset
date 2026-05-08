@@ -1,131 +1,91 @@
 # Diaphragm-Air-Flow-Sensor-Dataset
 # Synthetic Dataset Generation Documentation
 
-## Diaphragm Strain-Gauge Calibration Dataset
+## Acceleration-to-Voltage Mapping Dataset
 
-This project now uses a simpler calibration workflow:
+This is a simple dataset and calibration framework that maps tri-axial acceleration measurements to the voltage they induce on a strain-gauge sensor.
 
-1. Measure tri-axial acceleration with an accelerometer.
-2. Measure the diaphragm strain-gauge voltage at the same time.
-3. Learn how much of the voltage is caused by acceleration.
-4. Subtract the predicted acceleration voltage from the measured reading to estimate the true signal.
+## 1) The Model
 
-The key idea is that, for small strains, the strain-gauge bridge output is approximately linear. That makes linear regression a good first calibration model.
-
-## 1) Measurement model
-
-Let the accelerometer output be the acceleration vector
+A three-axis accelerometer provides the input acceleration vector:
 
 $$
 \mathbf{a}(t) = \begin{bmatrix} a_x(t) \\ a_y(t) \\ a_z(t) \end{bmatrix}.
 $$
 
-This is the input feature vector used for calibration.
-
-The diaphragm strain is approximated as a linear function of the three axes:
+The voltage induced by this acceleration is approximately linear over typical operating ranges:
 
 $$
-\epsilon_g(t) = k_x a_x(t) + k_y a_y(t) + k_z a_z(t).
+V(t) = \beta_0 + \beta_x a_x(t) + \beta_y a_y(t) + \beta_z a_z(t) + \varepsilon(t).
 $$
 
-This says that acceleration bends the diaphragm and produces strain in the gauge.
+The goal is to learn the coefficients $\beta_0, \beta_x, \beta_y, \beta_z$ from training data using linear regression, then use the fitted model to predict voltage from new acceleration measurements.
 
-For a Wheatstone-bridge strain gauge, the small-signal voltage is approximately proportional to strain:
+## 2) Dataset
 
-$$
-V_{acc}(t) \approx V_{exc} \cdot \frac{GF}{4} \cdot \epsilon_g(t).
-$$
-
-Here:
-
-- $V_{exc}$ is the bridge excitation voltage
-- $GF$ is the gauge factor
-- the factor $1/4$ comes from the small-signal bridge approximation
-
-After expanding the constants, the acceleration-induced voltage can be written in regression form:
-
-$$
-V_{acc}(t) = \beta_0 + \beta_x a_x(t) + \beta_y a_y(t) + \beta_z a_z(t) + \varepsilon(t).
-$$
-
-This is the model we train.
-
-The measured voltage is then:
-
-$$
-V_{meas}(t) = V_{true}(t) + V_{acc}(t).
-$$
-
-So the corrected estimate of the true voltage is:
-
-$$
-\hat V_{true}(t) = V_{meas}(t) - \hat V_{acc}(t).
-$$
-
-That subtraction is the whole calibration idea.
-
-## 2) Linear regression objective
-
-Given training samples $(a_x^{(i)}, a_y^{(i)}, a_z^{(i)}, V_{acc}^{(i)})$, the linear model parameters are chosen to minimize mean squared error:
-
-$$
-\hat\beta = \arg\min_{\beta} \sum_{i=1}^{N} \left(V_{acc}^{(i)} - (\beta_0 + \beta_x a_x^{(i)} + \beta_y a_y^{(i)} + \beta_z a_z^{(i)})\right)^2.
-$$
-
-This gives the best straight-line fit in the least-squares sense.
-
-## 3) Dataset columns
-
-The synthetic dataset is stored in [synthetic_pressure_vibration_dataset.csv](synthetic_pressure_vibration_dataset.csv) and contains:
+The dataset is stored in [acceleration_voltage_mapping.csv](acceleration_voltage_mapping.csv) and contains:
 
 - `sample_id`: row index
-- `time_s`: timestamp for the sample
-- `acc_x_mps2`: x-axis acceleration
-- `acc_y_mps2`: y-axis acceleration
-- `acc_z_mps2`: z-axis acceleration
-- `true_voltage_v`: the underlying diaphragm voltage before acceleration distortion
-- `accel_induced_voltage_v`: voltage contribution caused by acceleration
-- `measured_voltage_v`: observed voltage, equal to true plus acceleration-induced voltage
+- `acc_x_mps2`: x-axis acceleration (m/s²)
+- `acc_y_mps2`: y-axis acceleration (m/s²)
+- `acc_z_mps2`: z-axis acceleration (m/s²)
+- `voltage_v`: the voltage measured on the strain gauge (V)
 
-## 4) Training script
+Each row is one simultaneous measurement of acceleration and the voltage it produces.
 
-Train the regression model with [train_acceleration_linear_regression.py](train_acceleration_linear_regression.py).
+## 3) Training
 
-The script:
-
-1. Loads the CSV.
-2. Fits a linear regression model to predict `accel_induced_voltage_v` from the three acceleration axes.
-3. Evaluates the model on a holdout split.
-4. Subtracts the predicted acceleration voltage from `measured_voltage_v`.
-5. Reports how close the corrected voltage is to `true_voltage_v`.
-
-## 5) Why this method is appropriate
-
-This approach matches the sensor physics at small strain:
-
-- strain gauges are approximately linear over a normal operating range
-- the bridge output is proportional to strain
-- acceleration can be modeled as a disturbance term that enters the voltage reading
-- tri-axial acceleration gives the model enough information to learn direction-dependent coupling
-
-That makes the model simple, explainable, and practical for calibration.
-
-## 6) Run instructions
-
-Generate the dataset:
+Run the training script to fit the linear model:
 
 ```bash
-python3 generate_accelerometer_strain_dataset.py --out synthetic_pressure_vibration_dataset.csv
+python3 train_acceleration_linear_regression.py --data acceleration_voltage_mapping.csv
 ```
 
-Train the model:
+The script will:
+
+1. Load the dataset.
+2. Split it into training and test sets (80/20 by default).
+3. Fit a linear regression model on the training set.
+4. Evaluate on the test set and report $R^2$, MAE, and RMSE.
+5. Save the fitted coefficients to `acceleration_voltage_model.json`.
+
+## 4) Generating Synthetic Data
+
+To create a new dataset with different parameters:
 
 ```bash
-python3 train_acceleration_linear_regression.py --data synthetic_pressure_vibration_dataset.csv
+python3 generate_accelerometer_strain_dataset.py --samples 500 --out new_dataset.csv
 ```
 
-## 7) Short presentation version
+Main options:
 
-You can describe the method like this:
+- `--samples`: Number of data points to generate (default 360)
+- `--dt`: Sample spacing in seconds (default 0.02)
+- `--seed`: Random seed for reproducibility (default 42)
+- `--out`: Output CSV filename
 
-"We measure acceleration in three axes and learn a linear calibration model that predicts the voltage caused by vibration. During testing, we subtract that predicted vibration voltage from the sensor reading to estimate the true diaphragm signal."
+## 5) Model Output
+
+After training, the coefficients are saved to JSON in a format like:
+
+```json
+{
+  "feature_names": ["acc_x_mps2", "acc_y_mps2", "acc_z_mps2"],
+  "intercept_v": -0.2164,
+  "coefficients_v_per_ms2": {
+    "acc_x_mps2": 0.0181,
+    "acc_y_mps2": -0.0141,
+    "acc_z_mps2": 0.0221
+  }
+}
+```
+
+Use these values to predict voltage from new acceleration vectors.
+
+## 6) Quick Summary
+
+This is a direct mapping from tri-axial acceleration to induced voltage:
+- **Input**: $a_x, a_y, a_z$
+- **Output**: $V$
+- **Method**: Linear regression
+- **No decomposition, no latent variables, just a straightforward calibration.**

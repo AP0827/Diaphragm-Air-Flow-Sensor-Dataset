@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Generate a simple accelerometer-to-strain-gauge calibration dataset."""
+"""Generate a simple acceleration-to-voltage mapping dataset."""
 
 from __future__ import annotations
 
 import argparse
 import csv
 import math
-import random
 from dataclasses import dataclass
 
 
@@ -18,7 +17,7 @@ class DatasetConfig:
 
 
 def generate_rows(cfg: DatasetConfig) -> list[dict[str, float | int]]:
-    rng = random.Random(cfg.random_seed)
+    rng = __import__('random').Random(cfg.random_seed)
     rows: list[dict[str, float | int]] = []
 
     for sample_id in range(cfg.samples):
@@ -41,33 +40,20 @@ def generate_rows(cfg: DatasetConfig) -> list[dict[str, float | int]]:
             + rng.gauss(0.0, 0.08)
         )
 
-        true_voltage = (
-            2.15
-            + 0.12 * math.sin(2.0 * math.pi * 0.05 * time_s + 0.3)
-            + 0.04 * math.sin(2.0 * math.pi * 0.013 * time_s)
-            + 0.02 * (sample_id / max(cfg.samples - 1, 1))
-            + rng.gauss(0.0, 0.003)
-        )
-
-        accel_induced_voltage = (
+        voltage_v = (
             0.018 * acc_x
             - 0.014 * acc_y
             + 0.022 * (acc_z - 9.81)
             + rng.gauss(0.0, 0.0025)
         )
 
-        measured_voltage = true_voltage + accel_induced_voltage
-
         rows.append(
             {
                 "sample_id": sample_id,
-                "time_s": round(time_s, 4),
                 "acc_x_mps2": round(acc_x, 6),
                 "acc_y_mps2": round(acc_y, 6),
                 "acc_z_mps2": round(acc_z, 6),
-                "true_voltage_v": round(true_voltage, 6),
-                "accel_induced_voltage_v": round(accel_induced_voltage, 6),
-                "measured_voltage_v": round(measured_voltage, 6),
+                "voltage_v": round(voltage_v, 6),
             }
         )
 
@@ -86,8 +72,8 @@ def write_csv(rows: list[dict[str, float | int]], path: str) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Generate accelerometer and strain-gauge calibration data")
-    parser.add_argument("--out", default="synthetic_pressure_vibration_dataset.csv", help="Output CSV path")
+    parser = argparse.ArgumentParser(description="Generate acceleration-to-voltage mapping dataset")
+    parser.add_argument("--out", default="acceleration_voltage_mapping.csv", help="Output CSV path")
     parser.add_argument("--samples", type=int, default=360, help="Number of samples to generate")
     parser.add_argument("--dt", type=float, default=0.02, help="Sample spacing in seconds")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
