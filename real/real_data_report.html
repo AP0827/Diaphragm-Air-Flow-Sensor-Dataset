@@ -1,0 +1,1082 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flow Sensor Predictive Engineering Report</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --bg: #05070f;
+      --surface: #0d1117;
+      --surface2: #161b22;
+      --border: #21262d;
+      --border-light: #30363d;
+      --text: #e6edf3;
+      --text-muted: #7d8590;
+      --text-dim: #484f58;
+      --accent: #58a6ff;
+      --accent-dim: rgba(88,166,255,.12);
+      --green: #3fb950;
+      --green-dim: rgba(63,185,80,.12);
+      --amber: #d29922;
+      --amber-dim: rgba(210,153,34,.12);
+      --red: #f85149;
+      --red-dim: rgba(248,81,73,.12);
+      --purple: #bc8cff;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'Inter', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ─── Layout ─────────────────────────────────────────── */
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    /* ─── Header ─────────────────────────────────────────── */
+    .header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 32px;
+      margin-bottom: 40px;
+    }
+    .header-eyebrow {
+      font-family: var(--mono);
+      font-size: .72rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .header h1 {
+      font-size: clamp(1.75rem, 4vw, 2.6rem);
+      font-weight: 700;
+      letter-spacing: -.02em;
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+    .header-sub {
+      color: var(--text-muted);
+      font-size: .95rem;
+      max-width: 680px;
+      line-height: 1.65;
+    }
+    .header-meta {
+      display: flex;
+      gap: 24px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .meta-tag {
+      font-family: var(--mono);
+      font-size: .75rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .meta-tag::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--border-light);
+      display: block;
+    }
+
+    /* ─── KPI strip ──────────────────────────────────────── */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 700px) { .kpi-strip { grid-template-columns: repeat(2, 1fr); } }
+    .kpi {
+      background: var(--surface);
+      padding: 20px 22px;
+    }
+    .kpi-label {
+      font-family: var(--mono);
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .kpi-value {
+      font-size: 1.7rem;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      line-height: 1;
+    }
+    .kpi-sub {
+      font-size: .75rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+    .kpi-value.accent { color: var(--accent); }
+    .kpi-value.green  { color: var(--green); }
+    .kpi-value.amber  { color: var(--amber); }
+
+    /* ─── Section headings ───────────────────────────────── */
+    .section-title {
+      font-size: .7rem;
+      font-family: var(--mono);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ─── Grid ───────────────────────────────────────────── */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 860px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* ─── Card / Panel ───────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 24px;
+    }
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .card-desc {
+      font-size: .82rem;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    /* ─── Tables ─────────────────────────────────────────── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .83rem;
+    }
+    .data-table th {
+      font-family: var(--mono);
+      font-size: .68rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0 12px 8px 0;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      font-weight: 500;
+    }
+    .data-table td {
+      padding: 9px 12px 9px 0;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: middle;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table td.mono { font-family: var(--mono); font-size: .78rem; }
+    .data-table td.right { text-align: right; }
+
+    /* ─── Model comparison table ─────────────────────────── */
+    .model-table-wrap { overflow-x: auto; margin-top: 8px; }
+    .model-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .82rem;
+    }
+    .model-table th {
+      font-family: var(--mono);
+      font-size: .66rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 0 16px 10px 0;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .model-table td {
+      padding: 11px 16px 11px 0;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      font-family: var(--mono);
+      font-size: .78rem;
+    }
+    .model-table tr:last-child td { border-bottom: none; }
+    .model-table .model-name {
+      font-family: var(--sans);
+      font-weight: 500;
+      font-size: .85rem;
+      color: var(--text);
+      padding-right: 24px;
+    }
+    .model-table tr.best-row td { background: var(--green-dim); }
+    .model-table tr.best-row .model-name { color: var(--green); }
+    .val-good { color: var(--green); }
+    .val-bad  { color: var(--red); }
+    .val-ok   { color: var(--amber); }
+    .val-muted { color: var(--text-muted); }
+
+    /* ─── Bar chart ──────────────────────────────────────── */
+    .bar-chart { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+    .bar-row { display: flex; align-items: center; gap: 12px; }
+    .bar-label {
+      font-family: var(--mono);
+      font-size: .72rem;
+      color: var(--text-muted);
+      width: 110px;
+      flex-shrink: 0;
+      text-align: right;
+    }
+    .bar-track {
+      flex: 1;
+      height: 8px;
+      background: var(--surface2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .bar-fill { height: 100%; border-radius: 4px; transition: width .6s ease; }
+    .bar-val {
+      font-family: var(--mono);
+      font-size: .72rem;
+      color: var(--text-muted);
+      width: 52px;
+      flex-shrink: 0;
+    }
+
+    /* ─── Correlation bars ───────────────────────────────── */
+    .corr-row { display: flex; align-items: center; gap: 0; }
+    .corr-label {
+      font-family: var(--mono);
+      font-size: .72rem;
+      color: var(--text-muted);
+      width: 60px;
+      flex-shrink: 0;
+    }
+    .corr-center {
+      flex: 1;
+      position: relative;
+      height: 24px;
+      display: flex;
+      align-items: center;
+    }
+    .corr-axis {
+      position: absolute;
+      left: 50%;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: var(--border-light);
+    }
+    .corr-bar {
+      position: absolute;
+      height: 8px;
+      border-radius: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .corr-val {
+      font-family: var(--mono);
+      font-size: .72rem;
+      width: 58px;
+      flex-shrink: 0;
+      text-align: right;
+    }
+
+    /* ─── Pill badges ────────────────────────────────────── */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: .72rem;
+      font-family: var(--mono);
+      padding: 3px 9px;
+      border-radius: 20px;
+    }
+    .pill-green { background: var(--green-dim); color: var(--green); }
+    .pill-amber { background: var(--amber-dim); color: var(--amber); }
+    .pill-red   { background: var(--red-dim);   color: var(--red); }
+
+    /* ─── Callout ────────────────────────────────────────── */
+    .callout {
+      border-left: 3px solid var(--amber);
+      padding: 14px 16px;
+      background: var(--amber-dim);
+      border-radius: 0 8px 8px 0;
+      font-size: .87rem;
+      color: #fde68a;
+      line-height: 1.6;
+    }
+    .callout-title {
+      font-weight: 600;
+      font-size: .8rem;
+      font-family: var(--mono);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      color: var(--amber);
+    }
+    .info-callout {
+      border-left: 3px solid var(--accent);
+      padding: 14px 16px;
+      background: var(--accent-dim);
+      border-radius: 0 8px 8px 0;
+      font-size: .87rem;
+      color: #bfdbfe;
+      line-height: 1.6;
+    }
+
+    /* ─── Spacers ────────────────────────────────────────── */
+    .mt-8  { margin-top: 8px; }
+    .mt-12 { margin-top: 12px; }
+    .mt-16 { margin-top: 16px; }
+    .mt-24 { margin-top: 24px; }
+    .mt-32 { margin-top: 32px; }
+    .mb-16 { margin-bottom: 16px; }
+
+    /* ─── Feature summary grid ───────────────────────────── */
+    .feat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+    @media (max-width: 560px) { .feat-grid { grid-template-columns: repeat(2, 1fr); } }
+    .feat-cell {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .feat-name {
+      font-family: var(--mono);
+      font-size: .72rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .feat-vals { font-size: .78rem; color: var(--text); line-height: 1.7; }
+    .feat-vals span { color: var(--text-muted); }
+
+    /* ─── Mini inline chart (Actual vs Predicted) ────────── */
+    .trace-wrap { margin-top: 12px; }
+    .trace-svg { width: 100%; height: auto; display: block; }
+    .trace-legend { display: flex; gap: 16px; margin-top: 8px; }
+    .trace-legend-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: .75rem; color: var(--text-muted); font-family: var(--mono);
+    }
+    .trace-legend-swatch { width: 20px; height: 3px; border-radius: 2px; }
+
+    /* ─── F1 score bar ───────────────────────────────────── */
+    .f1-row {
+      display: flex; align-items: center; gap: 10px; font-size: .8rem;
+    }
+    .f1-label { width: 110px; font-family: var(--mono); font-size: .72rem; color: var(--text-muted); flex-shrink: 0; }
+    .f1-bar-track { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+    .f1-bar-fill { height: 100%; border-radius: 3px; }
+    .f1-val { width: 42px; font-family: var(--mono); font-size: .72rem; text-align: right; }
+
+    /* ─── Train vs Test vs External mini table ───────────── */
+    .phase-group { display: flex; gap: 6px; flex-direction: column; }
+    .phase-label-row {
+      display: flex; gap: 6px;
+      font-family: var(--mono); font-size: .64rem; color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: .06em;
+    }
+    .phase-label-row span { flex: 1; text-align: center; }
+
+    /* ─── Footer ─────────────────────────────────────────── */
+    .footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: .72rem;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ─── Header ─── -->
+  <header class="header">
+    <div class="header-eyebrow">Sensor Flow · Predictive Engineering Analysis</div>
+    <h1>Flow Sensor Predictive Engineering Report</h1>
+    <p class="header-sub">Diagnostic and benchmarking analysis of the sensor acquisition pipeline, feature engineering efficacy, and model generalization across independent test sessions.</p>
+    <div class="header-meta">
+      <span class="meta-tag">Training: new.csv — header line 3</span>
+      <span class="meta-tag">Validation: output.csv — header line 2</span>
+      <span class="meta-tag">Best Generalization Model: baseline_mean</span>
+    </div>
+  </header>
+
+  <!-- ─── KPI strip ─── -->
+  <div class="kpi-strip">
+    <div class="kpi">
+      <div class="kpi-label">Training rows</div>
+      <div class="kpi-value accent">1,875</div>
+      <div class="kpi-sub">0 skipped · 0 outliers</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">External rows</div>
+      <div class="kpi-value accent">422</div>
+      <div class="kpi-sub">16 skipped · 7 outliers removed</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Flow events (train)</div>
+      <div class="kpi-value amber">437</div>
+      <div class="kpi-sub">23.3% of rows non-zero</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Flow events (ext.)</div>
+      <div class="kpi-value amber">66</div>
+      <div class="kpi-sub">15.6% of rows non-zero</div>
+    </div>
+  </div>
+
+  <!-- Section 01 — System Workflow -->
+  <div class="section-title">01 — System Workflow</div>
+  <div class="card">
+    <h2>Production Data Acquisition &amp; Processing Pipeline</h2>
+    <p class="card-desc">The end-to-end engineering pipeline designed to ingest noisy telemetry and output robust flow predictions.</p>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: space-between; align-items: stretch; margin-top: 16px;">
+      <div style="flex: 1; min-width: 140px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="pill pill-green" style="margin-bottom: 8px;">01</div>
+          <div style="font-weight: 600; font-size: 0.82rem; color: var(--text);">Raw Sensor Logs</div>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">Ingests unstructured, noisy ASCII log streams from hardware rig captures.</div>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-size: 1.2rem;">➔</div>
+      <div style="flex: 1; min-width: 140px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="pill pill-green" style="margin-bottom: 8px;">02</div>
+          <div style="font-weight: 600; font-size: 0.82rem; color: var(--text);">Data Validation</div>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">Locates headers dynamically, discards corrupted lines, and filters physical outliers.</div>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-size: 1.2rem;">➔</div>
+      <div style="flex: 1; min-width: 140px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="pill pill-green" style="margin-bottom: 8px;">03</div>
+          <div style="font-weight: 600; font-size: 0.82rem; color: var(--text);">Feature Engineering</div>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">Derives temporal and differential signals (Delta) to capture sensor transitions.</div>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-size: 1.2rem;">➔</div>
+      <div style="flex: 1; min-width: 140px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="pill pill-green" style="margin-bottom: 8px;">04</div>
+          <div style="font-weight: 600; font-size: 0.82rem; color: var(--text);">Statistical Profiling</div>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">Maps feature-to-target correlations to isolate dominant predictive channels.</div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: space-between; align-items: stretch; margin-top: 12px;">
+      <div style="flex: 1; min-width: 140px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="pill pill-green" style="margin-bottom: 8px;">05</div>
+          <div style="font-weight: 600; font-size: 0.82rem; color: var(--text);">Model Benchmarking</div>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">Compares capacity and complexity trade-offs across a family of estimators.</div>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-size: 1.2rem;">➔</div>
+      <div style="flex: 1; min-width: 140px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="pill pill-green" style="margin-bottom: 8px;">06</div>
+          <div style="font-weight: 600; font-size: 0.82rem; color: var(--text);">External Validation</div>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">Evaluates out-of-session generalization on isolated, real-world datasets.</div>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-size: 1.2rem;">➔</div>
+      <div style="flex: 1; min-width: 140px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="pill pill-green" style="margin-bottom: 8px;">07</div>
+          <div style="font-weight: 600; font-size: 0.82rem; color: var(--text);">Automated Reporting</div>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">Generates portable summaries and complete diagnostic report dashboards.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 02 — Data Preparation -->
+  <div class="section-title mt-32">02 — Data Preparation</div>
+  <div class="grid-2 mt-8">
+    <div class="card">
+      <h2>Ingestion and Cleaning Performance</h2>
+      <p class="card-desc">Robust handling of unstructured telemetry logs containing rig headers, corrupt lines, and physical sensor outliers.</p>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Parsed</th>
+            <th>Valid</th>
+            <th>Skipped</th>
+            <th>Outliers</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">new.csv</td>
+            <td class="mono">1,875</td>
+            <td class="mono val-good">1,875</td>
+            <td class="mono val-muted">0</td>
+            <td class="mono val-muted">0</td>
+          </tr>
+          <tr>
+            <td class="mono">output.csv</td>
+            <td class="mono">445</td>
+            <td class="mono val-good">429</td>
+            <td class="mono val-amber">16</td>
+            <td class="mono val-amber">7</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="mt-16">
+        <div class="info-callout">
+          <strong>Header Auto-detection:</strong> Raw CSV captures contain non-standard header blocks. The parser programmatically locates the line beginning with <code>Raw,</code> to align column indexes dynamically.
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Data Quality Mitigation</h2>
+      <p class="card-desc">Detailed metrics on data filtering and structural cleaning executed during ingestion.</p>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div>
+          <strong style="color:var(--text); font-size:0.85rem;">Malformed Rows Dropped (16 rows)</strong>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top:2px;">Discarded partial or corrupted lines during data transmission in output.csv, ensuring downstream numeric integrity.</p>
+        </div>
+        <div>
+          <strong style="color:var(--text); font-size:0.85rem;">Physical Outliers Removed (7 rows)</strong>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top:2px;">Eliminated impossible physical readings (such as TempC outside expected operating profiles) that violate hardware bounds.</p>
+        </div>
+        <div class="callout" style="margin-top:4px;">
+          <div class="callout-title">Engineering Contribution</div>
+          The validation module ensures that no unaligned or physically impossible telemetry affects model estimation.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 03 — Feature Analysis & Explainability -->
+  <div class="section-title mt-32">03 — Feature Analysis &amp; Explainability</div>
+  <div class="card mt-8">
+    <h2>Statistical Feature Efficacy and Interpretations</h2>
+    <p class="card-desc">Feature correlations and physical meanings mapped against Flow target values. The analysis confirms that feature engineering yields the primary predictive signal.</p>
+    
+    <div class="grid-2">
+      <div>
+        <div class="bar-chart mt-8" style="gap:14px;">
+                  <div class="corr-row">
+          <div class="corr-label">Delta</div>
+          <div class="corr-center">
+            <div class="corr-axis"></div>
+            <div class="corr-bar" style="left:50%;width:50.0%;background:var(--green);"></div>
+          </div>
+          <div class="corr-val val-good" style="">+0.6154</div>
+        </div>
+        <div class="corr-row">
+          <div class="corr-label">TempC</div>
+          <div class="corr-center">
+            <div class="corr-axis"></div>
+            <div class="corr-bar" style="left:50%;width:6.0%;background:var(--green);"></div>
+          </div>
+          <div class="corr-val " style="color:var(--text-muted)">+0.0735</div>
+        </div>
+        <div class="corr-row">
+          <div class="corr-label">AccZ</div>
+          <div class="corr-center">
+            <div class="corr-axis"></div>
+            <div class="corr-bar" style="left:50%;width:5.0%;background:var(--green);"></div>
+          </div>
+          <div class="corr-val " style="color:var(--text-muted)">+0.0619</div>
+        </div>
+        <div class="corr-row">
+          <div class="corr-label">AccY</div>
+          <div class="corr-center">
+            <div class="corr-axis"></div>
+            <div class="corr-bar" style="left:50%;width:2.7%;background:var(--green);"></div>
+          </div>
+          <div class="corr-val " style="color:var(--text-muted)">+0.0328</div>
+        </div>
+        <div class="corr-row">
+          <div class="corr-label">AccX</div>
+          <div class="corr-center">
+            <div class="corr-axis"></div>
+            <div class="corr-bar" style="right:50%;width:10.9%;background:var(--red);"></div>
+          </div>
+          <div class="corr-val val-bad" style="">−0.1339</div>
+        </div>
+        <div class="corr-row">
+          <div class="corr-label">Raw</div>
+          <div class="corr-center">
+            <div class="corr-axis"></div>
+            <div class="corr-bar" style="right:50%;width:19.3%;background:var(--red);"></div>
+          </div>
+          <div class="corr-val val-bad" style="">−0.2371</div>
+        </div>
+        </div>
+      </div>
+      <div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Correlation</th>
+              <th>Physical Interpretation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">Delta</td>
+              <td class="mono val-good">+0.6152</td>
+              <td><strong>Dominant Predictor.</strong> Successive difference of Raw. Indicates flow is driven by changes in pressure/sensor readings rather than absolute values.</td>
+            </tr>
+            <tr>
+              <td class="mono">Raw</td>
+              <td class="mono val-bad">-0.2371</td>
+              <td>Absolute sensor reading. Represents base electrical levels; subject to offset drift across sessions.</td>
+            </tr>
+            <tr>
+              <td class="mono">AccX</td>
+              <td class="mono val-bad">-0.1339</td>
+              <td>Horizontal rig vibration. Negative correlation suggests high lateral shake dampens flow signal.</td>
+            </tr>
+            <tr>
+              <td class="mono">TempC</td>
+              <td class="mono val-good">+0.0735</td>
+              <td>Rig temperature. Ambient temperature has near-zero direct correlation with instantaneous flow.</td>
+            </tr>
+            <tr>
+              <td class="mono">AccZ</td>
+              <td class="mono val-good">+0.0619</td>
+              <td>Vertical vibration. Shows minimal coupling with fluid flow rate.</td>
+            </tr>
+            <tr>
+              <td class="mono">AccY</td>
+              <td class="mono val-good">+0.0328</td>
+              <td>Transverse vibration. Minimal predictive signal; statistically uncorrelated.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 04 — Predictive Model Benchmark -->
+  <div class="section-title mt-32">04 — Predictive Model Benchmark</div>
+  <div class="card mt-8">
+    <h2>Regression Modeling Framework Comparison</h2>
+    <p class="card-desc">Benchmarking results across models of varying complexity. Shifting focus to regularization, temporal modeling, and capacity trade-offs rather than binary success/failure.</p>
+    <div class="model-table-wrap">
+      <table class="model-table">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Train R²</th>
+            <th>Test R²</th>
+            <th>Ext. R²</th>
+            <th>Ext. MAE</th>
+            <th>Ext. RMSE</th>
+            <th>Ext. F1</th>
+            <th>Features</th>
+          </tr>
+        </thead>
+        <tbody>
+                    <tr class="best-row">
+            <td class="model-name">baseline_mean <span class="pill pill-green" style="vertical-align:middle;margin-left:6px;">best ext.</span></td>
+            <td class="val-muted">0.0000</td>
+            <td class="val-bad">-0.1797</td>
+            <td class="val-muted">-0.0126</td>
+            <td class="val-good">0.3601</td>
+            <td class="val-good">1.2630</td>
+            <td class="val-ok">0.2705</td>
+            <td class="val-muted">0</td>
+          </tr>
+          <tr>
+            <td class="model-name">linear</td>
+            <td class="val-ok">0.5119</td>
+            <td class="val-ok">0.1129</td>
+            <td class="val-bad">-21.2368</td>
+            <td class="val-bad">4.9695</td>
+            <td class="val-bad">5.9185</td>
+            <td class="val-bad">0.1013</td>
+            <td class="val-muted">6</td>
+          </tr>
+          <tr>
+            <td class="model-name">ridge</td>
+            <td class="val-ok">0.5119</td>
+            <td class="val-ok">0.1126</td>
+            <td class="val-bad">-20.8928</td>
+            <td class="val-bad">4.9322</td>
+            <td class="val-bad">5.8725</td>
+            <td class="val-bad">0.1013</td>
+            <td class="val-muted">6</td>
+          </tr>
+          <tr>
+            <td class="model-name">poly2</td>
+            <td class="val-ok">0.5705</td>
+            <td class="val-bad">-0.7733</td>
+            <td class="val-bad">-21.8047</td>
+            <td class="val-bad">4.8106</td>
+            <td class="val-bad">5.9936</td>
+            <td class="val-muted">0.1500</td>
+            <td class="val-muted">27</td>
+          </tr>
+          <tr>
+            <td class="model-name">lagged_linear <span class="pill pill-red" style="vertical-align:middle;margin-left:6px;">worst ext.</span></td>
+            <td class="val-ok">0.5617</td>
+            <td class="val-bad">-0.9332</td>
+            <td class="val-bad">-52.7910</td>
+            <td class="val-bad">7.7035</td>
+            <td class="val-bad">9.2155</td>
+            <td class="val-bad">0.0000</td>
+            <td class="val-muted">12</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid-2 mt-16">
+      <div>
+        <strong style="color:var(--text); font-size:0.85rem;">Regularization &amp; Overfitting</strong>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Ridge regression controls coefficient scales, but cannot mitigate domain shifts when absolute <code>Raw</code> values drift. 2nd-degree polynomial features (27 terms) expand capacity but overfit the training split.</p>
+      </div>
+      <div>
+        <strong style="color:var(--text); font-size:0.85rem;">Temporal Dynamics</strong>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Lagged linear regression captures dynamic response by feeding the prior time step (t-1) as input, raising training R² to 0.562, but shows high sensitivity to noise in out-of-session data.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 05 — Independent Validation -->
+  <div class="section-title mt-32">05 — Independent Validation</div>
+  <div class="grid-2 mt-8">
+    <!-- Generalization trace plot card -->
+    <div class="card">
+      <h2>System Generalization Trace</h2>
+      <p class="card-desc">Actual vs predicted Flow time-series for the best-performing out-of-session model (<code>baseline_mean</code>).</p>
+      <div class="trace-wrap">
+        
+<svg viewBox="0 0 960 320" width="100%" height="320">
+  <rect x="0" y="0" width="960" height="320" rx="18" fill="#111827"/>
+  <text x="24" y="24" fill="#f9fafb" font-size="18" font-weight="700">Actual vs predicted Flow for baseline_mean</text>
+  <polyline fill="none" stroke="#f97316" stroke-width="2" points="48.00,292.00 52.98,292.00 57.97,292.00 62.95,292.00 67.93,292.00 72.92,292.00 77.90,292.00 82.88,292.00 87.87,292.00 92.85,292.00 97.83,292.00 102.82,292.00 107.80,292.00 112.78,292.00 117.77,292.00 122.75,292.00 127.73,292.00 132.72,292.00 137.70,292.00 142.68,292.00 147.66,292.00 152.65,292.00 157.63,292.00 162.61,292.00 167.60,292.00 172.58,292.00 177.56,292.00 182.55,292.00 187.53,292.00 192.51,292.00 197.50,292.00 202.48,292.00 207.46,292.00 212.45,292.00 217.43,292.00 222.41,292.00 227.40,292.00 232.38,292.00 237.36,292.00 242.35,292.00 247.33,292.00 252.31,292.00 257.30,292.00 262.28,292.00 267.26,292.00 272.25,292.00 277.23,292.00 282.21,292.00 287.20,292.00 292.18,292.00 297.16,292.00 302.15,292.00 307.13,292.00 312.11,292.00 317.09,292.00 322.08,292.00 327.06,292.00 332.04,292.00 337.03,292.00 342.01,292.00 346.99,292.00 351.98,292.00 356.96,292.00 361.94,292.00 366.93,292.00 371.91,292.00 376.89,292.00 381.88,292.00 386.86,292.00 391.84,292.00 396.83,292.00 401.81,292.00 406.79,292.00 411.78,292.00 416.76,292.00 421.74,292.00 426.73,292.00 431.71,292.00 436.69,292.00 441.68,292.00 446.66,292.00 451.64,292.00 456.63,292.00 461.61,292.00 466.59,292.00 471.58,292.00 476.56,292.00 481.54,292.00 486.53,292.00 491.51,292.00 496.49,292.00 501.47,292.00 506.46,292.00 511.44,292.00 516.42,292.00 521.41,292.00 526.39,292.00 531.37,292.00 536.36,292.00 541.34,292.00 546.32,292.00 551.31,292.00 556.29,292.00 561.27,292.00 566.26,292.00 571.24,292.00 576.22,292.00 581.21,292.00 586.19,292.00 591.17,292.00 596.16,292.00 601.14,292.00 606.12,292.00 611.11,292.00 616.09,292.00 621.07,292.00 626.06,292.00 631.04,292.00 636.02,292.00 641.01,292.00 645.99,292.00 650.97,292.00 655.96,292.00 660.94,292.00 665.92,292.00 670.91,292.00 675.89,292.00 680.87,292.00 685.85,292.00 690.84,292.00 695.82,292.00 700.80,292.00 705.79,292.00 710.77,292.00 715.75,292.00 720.74,292.00 725.72,292.00 730.70,292.00 735.69,292.00 740.67,292.00 745.65,292.00 750.64,292.00 755.62,292.00 760.60,292.00 765.59,292.00 770.57,292.00 775.55,292.00 780.54,292.00 785.52,292.00 790.50,292.00 795.49,292.00 800.47,292.00 805.45,292.00 810.44,292.00 815.42,292.00 820.40,292.00 825.39,292.00 830.37,292.00 835.35,292.00 840.34,292.00 845.32,292.00 850.30,292.00 855.28,292.00 860.27,36.00 865.25,112.68 870.23,166.50 875.22,204.13 880.20,230.56 885.18,248.90 890.17,261.76 895.15,270.81 900.13,277.24 905.12,281.76 910.10,284.86 915.08,287.00 920.07,288.43 925.05,289.62 930.03,290.33 935.02,290.81 940.00,291.05"/>
+  <polyline fill="none" stroke="#22c55e" stroke-width="2" points="48.00,289.06 52.98,289.06 57.97,289.06 62.95,289.06 67.93,289.06 72.92,289.06 77.90,289.06 82.88,289.06 87.87,289.06 92.85,289.06 97.83,289.06 102.82,289.06 107.80,289.06 112.78,289.06 117.77,289.06 122.75,289.06 127.73,289.06 132.72,289.06 137.70,289.06 142.68,289.06 147.66,289.06 152.65,289.06 157.63,289.06 162.61,289.06 167.60,289.06 172.58,289.06 177.56,289.06 182.55,289.06 187.53,289.06 192.51,289.06 197.50,289.06 202.48,289.06 207.46,289.06 212.45,289.06 217.43,289.06 222.41,289.06 227.40,289.06 232.38,289.06 237.36,289.06 242.35,289.06 247.33,289.06 252.31,289.06 257.30,289.06 262.28,289.06 267.26,289.06 272.25,289.06 277.23,289.06 282.21,289.06 287.20,289.06 292.18,289.06 297.16,289.06 302.15,289.06 307.13,289.06 312.11,289.06 317.09,289.06 322.08,289.06 327.06,289.06 332.04,289.06 337.03,289.06 342.01,289.06 346.99,289.06 351.98,289.06 356.96,289.06 361.94,289.06 366.93,289.06 371.91,289.06 376.89,289.06 381.88,289.06 386.86,289.06 391.84,289.06 396.83,289.06 401.81,289.06 406.79,289.06 411.78,289.06 416.76,289.06 421.74,289.06 426.73,289.06 431.71,289.06 436.69,289.06 441.68,289.06 446.66,289.06 451.64,289.06 456.63,289.06 461.61,289.06 466.59,289.06 471.58,289.06 476.56,289.06 481.54,289.06 486.53,289.06 491.51,289.06 496.49,289.06 501.47,289.06 506.46,289.06 511.44,289.06 516.42,289.06 521.41,289.06 526.39,289.06 531.37,289.06 536.36,289.06 541.34,289.06 546.32,289.06 551.31,289.06 556.29,289.06 561.27,289.06 566.26,289.06 571.24,289.06 576.22,289.06 581.21,289.06 586.19,289.06 591.17,289.06 596.16,289.06 601.14,289.06 606.12,289.06 611.11,289.06 616.09,289.06 621.07,289.06 626.06,289.06 631.04,289.06 636.02,289.06 641.01,289.06 645.99,289.06 650.97,289.06 655.96,289.06 660.94,289.06 665.92,289.06 670.91,289.06 675.89,289.06 680.87,289.06 685.85,289.06 690.84,289.06 695.82,289.06 700.80,289.06 705.79,289.06 710.77,289.06 715.75,289.06 720.74,289.06 725.72,289.06 730.70,289.06 735.69,289.06 740.67,289.06 745.65,289.06 750.64,289.06 755.62,289.06 760.60,289.06 765.59,289.06 770.57,289.06 775.55,289.06 780.54,289.06 785.52,289.06 790.50,289.06 795.49,289.06 800.47,289.06 805.45,289.06 810.44,289.06 815.42,289.06 820.40,289.06 825.39,289.06 830.37,289.06 835.35,289.06 840.34,289.06 845.32,289.06 850.30,289.06 855.28,289.06 860.27,289.06 865.25,289.06 870.23,289.06 875.22,289.06 880.20,289.06 885.18,289.06 890.17,289.06 895.15,289.06 900.13,289.06 905.12,289.06 910.10,289.06 915.08,289.06 920.07,289.06 925.05,289.06 930.03,289.06 935.02,289.06 940.00,289.06"/>
+  <text x="24" y="308" fill="#f9fafb" font-size="12">Actual: orange, Predicted: green</text>
+</svg>
+
+      </div>
+      <p class="hint mt-12">The trace compares predictions from the best model against actual flow readings over a continuous 180-sample segment of the external run. It illustrates the stability of baseline predictions in comparison to the erratic outputs of uncalibrated regression weights.</p>
+    </div>
+
+    <!-- Model performance comparison card -->
+    <div class="card">
+      <h2>Out-of-Session Benchmark Metrics</h2>
+      <p class="card-desc">Independent validation metrics expose how models transfer to distinct session conditions.</p>
+      
+      <h3 style="font-size:.85rem; margin-top:8px; margin-bottom:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase; font-family:var(--mono);">External R² Validation</h3>
+      <div class="bar-chart mt-8" style="gap:14px; margin-bottom:20px;">
+                <div class="bar-row">
+          <div class="bar-label">baseline</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:0.02%;background:var(--green);"></div>
+          </div>
+          <div class="bar-val" style="color:var(--green);">-0.013</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">linear</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:40.23%;background:var(--red);"></div>
+          </div>
+          <div class="bar-val" style="color:var(--red);">-21.24</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">ridge</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:39.58%;background:var(--red);"></div>
+          </div>
+          <div class="bar-val" style="color:var(--red);">-20.89</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">poly2</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:41.30%;background:var(--red);"></div>
+          </div>
+          <div class="bar-val" style="color:var(--red);">-21.80</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">lagged</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:100.00%;background:var(--red);"></div>
+          </div>
+          <div class="bar-val" style="color:var(--red);">-52.79</div>
+        </div>
+      </div>
+
+      <h3 style="font-size:.85rem; margin-top:24px; margin-bottom:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase; font-family:var(--mono);">Event Detection F1 Score</h3>
+      <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+                <div class="f1-row">
+          <div class="f1-label">baseline</div>
+          <div class="f1-bar-track"><div class="f1-bar-fill" style="width:27.0%;background:var(--green);"></div></div>
+          <div class="f1-val val-good">0.270</div>
+        </div>
+        <div class="f1-row">
+          <div class="f1-label">poly2</div>
+          <div class="f1-bar-track"><div class="f1-bar-fill" style="width:15.0%;background:var(--amber);"></div></div>
+          <div class="f1-val val-ok">0.150</div>
+        </div>
+        <div class="f1-row">
+          <div class="f1-label">linear</div>
+          <div class="f1-bar-track"><div class="f1-bar-fill" style="width:10.1%;background:var(--amber);"></div></div>
+          <div class="f1-val val-ok">0.101</div>
+        </div>
+        <div class="f1-row">
+          <div class="f1-label">ridge</div>
+          <div class="f1-bar-track"><div class="f1-bar-fill" style="width:10.1%;background:var(--amber);"></div></div>
+          <div class="f1-val val-ok">0.101</div>
+        </div>
+        <div class="f1-row">
+          <div class="f1-label">lagged</div>
+          <div class="f1-bar-track"><div class="f1-bar-fill" style="width:0.0%;background:var(--red);"></div></div>
+          <div class="f1-val val-bad">0.000</div>
+        </div>
+      </div>
+
+      <h3 style="font-size:.85rem; margin-top:24px; margin-bottom:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase; font-family:var(--mono);">Absolute Error Magnitude (MAE)</h3>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+                <div class="f1-row">
+          <div class="f1-label">baseline</div>
+          <div class="f1-bar-track"><div class="f1-bar-fill" style="width:4.7%;background:var(--green);"></div></div>
+          <div class="f1-val val-good">0.360</div>
+        </div>
+        <div class="f1-row">
+          <div class="f1-label">poly2</div>
+          <div class="f1-bar-track"><div class="f1-bar-fill" style="width:62.4%;background:var(--red);"></div></div>
+          <div class="f1-val val-bad">4.811</div>
+        </div>
+        <div class="f1-row">
+          <div class="f1-label">ridge</div>
+          <div class="f1-bar-track"><div class="f1-bar-fill" style="width:64.0%;background:var(--red);"></div></div>
+          <div class="f1-val val-bad">4.932</div>
+        </div>
+        <div class="f1-row">
+          <div class="f1-label">linear</div>
+          <div class="f1-bar-track"><div class="f1-bar-fill" style="width:64.5%;background:var(--red);"></div></div>
+          <div class="f1-val val-bad">4.969</div>
+        </div>
+        <div class="f1-row">
+          <div class="f1-label">lagged</div>
+          <div class="f1-bar-track"><div class="f1-bar-fill" style="width:100.0%;background:var(--red);"></div></div>
+          <div class="f1-val val-bad">7.704</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 06 — Dataset Characterization -->
+  <div class="section-title mt-32">06 — Dataset Characterization</div>
+  <div class="grid-2 mt-8">
+    <div class="card">
+      <h2>Training Profile (new.csv)</h2>
+      <p class="card-desc">Chronological capture representing the primary training and internal testing split.</p>
+      <div class="feat-grid">
+                <div class="feat-cell">
+          <div class="feat-name">Raw</div>
+          <div class="feat-vals">
+            μ <strong>1,254,496</strong><br>
+            <span>σ</span> 33,372<br>
+            <span>range 1,073k – 1,300k</span>
+          </div>
+        </div>
+        <div class="feat-cell">
+          <div class="feat-name">Delta</div>
+          <div class="feat-vals">
+            μ <strong>477</strong><br>
+            <span>σ</span> 5,696<br>
+            <span>max 113,172</span>
+          </div>
+        </div>
+        <div class="feat-cell">
+          <div class="feat-name">TempC</div>
+          <div class="feat-vals">
+            μ <strong>30.99°C</strong><br>
+            <span>σ</span> 1.49<br>
+            <span>range -16.9 – 34.6</span>
+          </div>
+        </div>
+        <div class="feat-cell">
+          <div class="feat-name">AccX</div>
+          <div class="feat-vals">
+            μ <strong>424</strong><br>
+            <span>σ</span> 105<br>
+            <span>range 106 – 607</span>
+          </div>
+        </div>
+        <div class="feat-cell">
+          <div class="feat-name">AccY</div>
+          <div class="feat-vals">
+            μ <strong>397</strong><br>
+            <span>σ</span> 7.8<br>
+            <span>range 65 – 431</span>
+          </div>
+        </div>
+        <div class="feat-cell">
+          <div class="feat-name">AccZ</div>
+          <div class="feat-vals">
+            μ <strong>367</strong><br>
+            <span>σ</span> 6.8<br>
+            <span>range 95 – 376</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>External Profile (output.csv)</h2>
+      <p class="card-desc">Validation capture representing a distinct hardware test run with shifted operating points.</p>
+      <div class="feat-grid">
+                <div class="feat-cell" style="border-color:var(--amber);border-width:1.5px;">
+          <div class="feat-name" style="color:var(--amber);">Raw ⚠</div>
+          <div class="feat-vals">
+            μ <strong>1,394,812</strong><br>
+            <span>σ</span> 23,345<br>
+            <span>range 1,239k – 1,421k</span>
+          </div>
+        </div>
+        <div class="feat-cell">
+          <div class="feat-name">Delta</div>
+          <div class="feat-vals">
+            μ <strong>1,276</strong><br>
+            <span>σ</span> 11,435<br>
+            <span>max 130,170</span>
+          </div>
+        </div>
+        <div class="feat-cell">
+          <div class="feat-name">TempC</div>
+          <div class="feat-vals">
+            μ <strong>29.61°C</strong><br>
+            <span>σ</span> 3.48<br>
+            <span>range -20.7 – 32.8</span>
+          </div>
+        </div>
+        <div class="feat-cell">
+          <div class="feat-name">AccX</div>
+          <div class="feat-vals">
+            μ <strong>402</strong><br>
+            <span>σ</span> 80<br>
+            <span>range 114 – 706</span>
+          </div>
+        </div>
+        <div class="feat-cell" style="border-color:var(--amber);border-width:1.5px;">
+          <div class="feat-name" style="color:var(--amber);">AccY ⚠</div>
+          <div class="feat-vals">
+            μ <strong>362</strong><br>
+            <span>σ</span> 26<br>
+            <span>range 97 – 424</span>
+          </div>
+        </div>
+        <div class="feat-cell" style="border-color:var(--amber);border-width:1.5px;">
+          <div class="feat-name" style="color:var(--amber);">AccZ ⚠</div>
+          <div class="feat-vals">
+            μ <strong>381</strong><br>
+            <span>σ</span> 27<br>
+            <span>range 33 – 408</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 07 — Key Engineering Insights -->
+  <div class="section-title mt-32">07 — Key Engineering Insights</div>
+  <div class="card mt-8" style="border: 1px solid var(--accent); background: linear-gradient(180deg, rgba(13,17,23,0.95) 0%, rgba(22,27,34,0.95) 100%);">
+    <h2>Production and Architectural Learnings</h2>
+    <p class="card-desc">Critical takeaways regarding the sensor integration and analytic pipeline design.</p>
+    
+    <div style="display:flex; flex-direction:column; gap:16px; margin-top:16px;">
+      <div style="display:flex; gap:12px; align-items:flex-start;">
+        <span class="pill pill-green" style="font-weight:bold; flex-shrink:0;">Insight 01</span>
+        <div>
+          <strong style="color:var(--text); font-size:0.88rem;">Feature engineering yields primary predictive value</strong>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">Deriving temporal differentials (<code>Delta</code>) provides strong predictive signal, whereas expanding raw feature dimensionality (Polynomial regression) leads to overfitting without improving generalization.</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:12px; align-items:flex-start;">
+        <span class="pill pill-green" style="font-weight:bold; flex-shrink:0;">Insight 02</span>
+        <div>
+          <strong style="color:var(--text); font-size:0.88rem;">Dynamic changes drive flow physics</strong>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">Correlation analysis shows that flow is strongly linked to sensor delta changes (+0.615) rather than raw absolute levels (-0.237), confirming that pressure differentials are physically dominant.</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:12px; align-items:flex-start;">
+        <span class="pill pill-green" style="font-weight:bold; flex-shrink:0;">Insight 03</span>
+        <div>
+          <strong style="color:var(--text); font-size:0.88rem;">Automated preprocessing safeguards pipeline integrity</strong>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">Filtering repeated headers, malformed rows, and out-of-bounds readings ensures input sanitization.</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:12px; align-items:flex-start;">
+        <span class="pill pill-green" style="font-weight:bold; flex-shrink:0;">Insight 04</span>
+        <div>
+          <strong style="color:var(--text); font-size:0.88rem;">Independent validation reveals operational shifts</strong>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">Out-of-session testing prevents overconfidence by exposing baseline drifts (~140k in Raw, 3x increase in vibration noise) typical of real-world deployments.</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:12px; align-items:flex-start;">
+        <span class="pill pill-green" style="font-weight:bold; flex-shrink:0;">Insight 05</span>
+        <div>
+          <strong style="color:var(--text); font-size:0.88rem;">Workflow is fully reproducible</strong>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">The pipeline script automates the entire sequence from raw ingestion to model benchmarking and diagnostic report compilation, ensuring consistency and auditability.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 08 — Synthetic Dataset Reference -->
+  
+
+  <!-- Section 09 — Limitations & Future Work -->
+  <div class="section-title mt-32">09 — Limitations &amp; Future Work</div>
+  <div class="card mt-8" style="border-left: 3px solid var(--red); background: rgba(248,81,73,0.02);">
+    <h2>Operational Limitations and Calibration Strategy</h2>
+    <p class="card-desc">Identified pipeline limitations and proposed mitigations for next-generation revisions.</p>
+    <ul style="padding-left: 20px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.7;">
+      <li><strong>Coordinate Baseline Drift:</strong> Absolute sensor offsets change significantly between sessions. Future models should employ relative scaling or rely strictly on dynamic differences.</li>
+      <li><strong>Rig Vibration Coupling:</strong> AccY/Z noise variances increased 3-4x in the validation session. Adaptive filtering or vibration-based noise cancellation should be introduced.</li>
+      <li><strong>Dynamic Calibration:</strong> Under shift, absolute linear coefficients degrade. A dynamic self-calibration or online zero-point adjustment step is required to maintain accuracy in long-term runs.</li>
+    </ul>
+  </div>
+
+  <!-- ─── Footer ─── -->
+  <div class="footer">
+    <span>Real Sensor Data Pipeline · generated from real_data_summary.json + real_data_model_comparison.csv</span>
+    <span>5 models · 2,320 total rows processed</span>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,216 @@
+{
+  "train": {
+    "path": "new.csv",
+    "rows": 1875,
+    "target_nonzero": 437,
+    "feature_summary": {
+      "Raw": {
+        "min": 1073216.0,
+        "max": 1299591.0,
+        "mean": 1254495.9264,
+        "median": 1264673.0,
+        "stdev": 33372.13937754939
+      },
+      "Delta": {
+        "min": 0.0,
+        "max": 113172.0,
+        "mean": 477.00053333333335,
+        "median": 0.0,
+        "stdev": 5696.109673710036
+      },
+      "TempC": {
+        "min": -16.9,
+        "max": 34.6,
+        "mean": 30.986453333333333,
+        "median": 31.0,
+        "stdev": 1.4870276239831217
+      },
+      "AccX": {
+        "min": 106.0,
+        "max": 607.0,
+        "mean": 423.7856,
+        "median": 340.0,
+        "stdev": 105.20223016951685
+      },
+      "AccY": {
+        "min": 65.0,
+        "max": 431.0,
+        "mean": 396.8421333333333,
+        "median": 397.0,
+        "stdev": 7.842491830761161
+      },
+      "AccZ": {
+        "min": 95.0,
+        "max": 376.0,
+        "mean": 367.34933333333333,
+        "median": 367.0,
+        "stdev": 6.804398054853118
+      }
+    },
+    "target_summary": {
+      "min": 0.0,
+      "max": 10.09,
+      "mean": 0.25864,
+      "median": 0.0,
+      "stdev": 0.9965973662417537
+    }
+  },
+  "external": {
+    "path": "output.csv",
+    "rows": 422,
+    "target_nonzero": 66,
+    "feature_summary": {
+      "Raw": {
+        "min": 1238543.0,
+        "max": 1420645.0,
+        "mean": 1394811.9289099525,
+        "median": 1402085.0,
+        "stdev": 23344.82327018719
+      },
+      "Delta": {
+        "min": 0.0,
+        "max": 130170.0,
+        "mean": 1276.0876777251185,
+        "median": 0.0,
+        "stdev": 11434.955959082286
+      },
+      "TempC": {
+        "min": -20.7,
+        "max": 32.8,
+        "mean": 29.608530805687206,
+        "median": 29.4,
+        "stdev": 3.4761030126082684
+      },
+      "AccX": {
+        "min": 114.0,
+        "max": 706.0,
+        "mean": 402.26777251184836,
+        "median": 363.0,
+        "stdev": 80.26580164675141
+      },
+      "AccY": {
+        "min": 97.0,
+        "max": 424.0,
+        "mean": 362.18009478672985,
+        "median": 349.0,
+        "stdev": 26.46003481942236
+      },
+      "AccZ": {
+        "min": 33.0,
+        "max": 408.0,
+        "mean": 380.7037914691943,
+        "median": 392.0,
+        "stdev": 27.458973012385286
+      }
+    },
+    "target_summary": {
+      "min": 0.0,
+      "max": 10.82,
+      "mean": 0.26469194312796207,
+      "median": 0.0,
+      "stdev": 1.255084361085818
+    }
+  },
+  "load_stats": {
+    "train": {
+      "path": "new.csv",
+      "total_lines": 1878,
+      "header_line": 3,
+      "parsed_rows": 1875,
+      "valid_rows": 1875,
+      "skipped_rows": 0,
+      "outlier_rows": 0
+    },
+    "external": {
+      "path": "output.csv",
+      "total_lines": 453,
+      "header_line": 2,
+      "parsed_rows": 445,
+      "valid_rows": 429,
+      "skipped_rows": 16,
+      "outlier_rows": 7
+    }
+  },
+  "models": [
+    {
+      "name": "baseline_mean",
+      "train_mae": 0.2251539999999999,
+      "train_rmse": 0.7181195900095996,
+      "train_r2": 0.0,
+      "test_mae": 0.8015058666666667,
+      "test_rmse": 1.7304544480184003,
+      "test_r2": -0.17969141056365734,
+      "external_mae": 0.36014170616113744,
+      "external_rmse": 1.2629937042988268,
+      "external_r2": -0.012643397008580193,
+      "external_event_f1": 0.27049180327868855,
+      "feature_count": 0
+    },
+    {
+      "name": "linear",
+      "train_mae": 0.18457788008553586,
+      "train_rmse": 0.5016993593021878,
+      "train_r2": 0.5119171540710139,
+      "test_mae": 0.7191198609281572,
+      "test_rmse": 1.5005739201252897,
+      "test_r2": 0.11291984731352478,
+      "external_mae": 4.969455370603394,
+      "external_rmse": 5.918458382153702,
+      "external_r2": -21.236752376899634,
+      "external_event_f1": 0.10126582278481013,
+      "feature_count": 6
+    },
+    {
+      "name": "ridge",
+      "train_mae": 0.1843980538989512,
+      "train_rmse": 0.5017001309334933,
+      "train_r2": 0.5119156526926039,
+      "test_mae": 0.7188746374993134,
+      "test_rmse": 1.5008540356439222,
+      "test_r2": 0.11258862989554164,
+      "external_mae": 4.932247686003768,
+      "external_rmse": 5.872501532309628,
+      "external_r2": -20.89275622957614,
+      "external_event_f1": 0.10126582278481013,
+      "feature_count": 6
+    },
+    {
+      "name": "poly2",
+      "train_mae": 0.16706351016684742,
+      "train_rmse": 0.4706334932257981,
+      "train_r2": 0.5704911532529682,
+      "test_mae": 0.7808865807407067,
+      "test_rmse": 2.1215909358147553,
+      "test_r2": -0.7732557499090416,
+      "external_mae": 4.810621256238047,
+      "external_rmse": 5.993567696522649,
+      "external_r2": -21.804733100787203,
+      "external_event_f1": 0.15000000000000002,
+      "feature_count": 27
+    },
+    {
+      "name": "lagged_linear",
+      "train_mae": 0.18635912768260043,
+      "train_rmse": 0.4755749978644366,
+      "train_r2": 0.5617081119956129,
+      "test_mae": 0.8302137582648419,
+      "test_rmse": 2.2151930674186464,
+      "test_r2": -0.9331753170494244,
+      "external_mae": 7.70350250558357,
+      "external_rmse": 9.215525868159023,
+      "external_r2": -52.791039582028354,
+      "external_event_f1": 0.0,
+      "feature_count": 12
+    }
+  ],
+  "best_model": "baseline_mean",
+  "correlations": {
+    "Raw": -0.23707288408948576,
+    "Delta": 0.6154231107137316,
+    "TempC": 0.07350855320045585,
+    "AccX": -0.13385265770879698,
+    "AccY": 0.032783986485342545,
+    "AccZ": 0.06191907466858632
+  },
+  "synthetic_summary": null
+}
