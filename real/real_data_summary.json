@@ -1,30 +1,21 @@
 {
+  "question": "How sensitive is an air flow sensor to external acceleration?",
+  "target": "Flow",
+  "inputs": [
+    "AccX",
+    "AccY",
+    "AccZ",
+    "TempC"
+  ],
+  "excluded_from_model": [
+    "Raw",
+    "Delta"
+  ],
   "train": {
     "path": "new.csv",
     "rows": 1875,
     "target_nonzero": 437,
     "feature_summary": {
-      "Raw": {
-        "min": 1073216.0,
-        "max": 1299591.0,
-        "mean": 1254495.9264,
-        "median": 1264673.0,
-        "stdev": 33372.13937754939
-      },
-      "Delta": {
-        "min": 0.0,
-        "max": 113172.0,
-        "mean": 477.00053333333335,
-        "median": 0.0,
-        "stdev": 5696.109673710036
-      },
-      "TempC": {
-        "min": -16.9,
-        "max": 34.6,
-        "mean": 30.986453333333333,
-        "median": 31.0,
-        "stdev": 1.4870276239831217
-      },
       "AccX": {
         "min": 106.0,
         "max": 607.0,
@@ -45,6 +36,13 @@
         "mean": 367.34933333333333,
         "median": 367.0,
         "stdev": 6.804398054853118
+      },
+      "TempC": {
+        "min": -16.9,
+        "max": 34.6,
+        "mean": 30.986453333333333,
+        "median": 31.0,
+        "stdev": 1.4870276239831217
       }
     },
     "target_summary": {
@@ -60,27 +58,6 @@
     "rows": 422,
     "target_nonzero": 66,
     "feature_summary": {
-      "Raw": {
-        "min": 1238543.0,
-        "max": 1420645.0,
-        "mean": 1394811.9289099525,
-        "median": 1402085.0,
-        "stdev": 23344.82327018719
-      },
-      "Delta": {
-        "min": 0.0,
-        "max": 130170.0,
-        "mean": 1276.0876777251185,
-        "median": 0.0,
-        "stdev": 11434.955959082286
-      },
-      "TempC": {
-        "min": -20.7,
-        "max": 32.8,
-        "mean": 29.608530805687206,
-        "median": 29.4,
-        "stdev": 3.4761030126082684
-      },
       "AccX": {
         "min": 114.0,
         "max": 706.0,
@@ -101,6 +78,13 @@
         "mean": 380.7037914691943,
         "median": 392.0,
         "stdev": 27.458973012385286
+      },
+      "TempC": {
+        "min": -20.7,
+        "max": 32.8,
+        "mean": 29.608530805687206,
+        "median": 29.4,
+        "stdev": 3.4761030126082684
       }
     },
     "target_summary": {
@@ -131,6 +115,101 @@
       "outlier_rows": 7
     }
   },
+  "correlations": {
+    "AccX": -0.13385265770879698,
+    "AccY": 0.032783986485342545,
+    "AccZ": 0.06191907466858632,
+    "TempC": 0.07350855320045585
+  },
+  "ols_significance": [
+    {
+      "feature": "Intercept",
+      "coefficient": 8.364972468825679,
+      "std_error": 1.8445228982631456,
+      "z_score_normal_approx": 4.535033138760365,
+      "p_value_normal_approx": 5.759444175573773e-06
+    },
+    {
+      "feature": "AccX",
+      "coefficient": -0.004188997529581228,
+      "std_error": 0.0005165377116900355,
+      "z_score_normal_approx": -8.109761271593207,
+      "p_value_normal_approx": 5.071931035804215e-16
+    },
+    {
+      "feature": "AccY",
+      "coefficient": 0.09023277648221106,
+      "std_error": 0.016269889714169674,
+      "z_score_normal_approx": 5.545998041008605,
+      "p_value_normal_approx": 2.922820965383461e-08
+    },
+    {
+      "feature": "AccZ",
+      "coefficient": -0.12727134644276075,
+      "std_error": 0.02066657116873868,
+      "z_score_normal_approx": -6.1583194136857085,
+      "p_value_normal_approx": 7.352095599793731e-10
+    },
+    {
+      "feature": "TempC",
+      "coefficient": 0.1488967151357252,
+      "std_error": 0.027230927314457812,
+      "z_score_normal_approx": 5.467926722299719,
+      "p_value_normal_approx": 4.553300344519397e-08
+    }
+  ],
+  "feature_effects": [
+    {
+      "feature": "AccX",
+      "correlation_with_flow": -0.13385265770879698,
+      "linear_coefficient": -0.004188997529581228,
+      "std_error": 0.0005165377116900355,
+      "z_score_normal_approx": -8.109761271593207,
+      "p_value_normal_approx": 5.071931035804215e-16,
+      "standardized_coefficient": -0.4421965150765171,
+      "absolute_standardized_share": 0.19711053850400836,
+      "importance_rmse_increase": 0.09215568571900512
+    },
+    {
+      "feature": "AccY",
+      "correlation_with_flow": 0.032783986485342545,
+      "linear_coefficient": 0.09023277648221106,
+      "std_error": 0.016269889714169674,
+      "z_score_normal_approx": 5.545998041008605,
+      "p_value_normal_approx": 2.922820965383461e-08,
+      "standardized_coefficient": 0.7100659066532018,
+      "absolute_standardized_share": 0.3165141932643472,
+      "importance_rmse_increase": -0.19992970948984912
+    },
+    {
+      "feature": "AccZ",
+      "correlation_with_flow": 0.06191907466858632,
+      "linear_coefficient": -0.12727134644276075,
+      "std_error": 0.02066657116873868,
+      "z_score_normal_approx": -6.1583194136857085,
+      "p_value_normal_approx": 7.352095599793731e-10,
+      "standardized_coefficient": -0.8689616604541436,
+      "absolute_standardized_share": 0.38734249364632645,
+      "importance_rmse_increase": -0.21583655476321795
+    },
+    {
+      "feature": "TempC",
+      "correlation_with_flow": 0.07350855320045585,
+      "linear_coefficient": 0.1488967151357252,
+      "std_error": 0.027230927314457812,
+      "z_score_normal_approx": 5.467926722299719,
+      "p_value_normal_approx": 4.553300344519397e-08,
+      "standardized_coefficient": 0.22216948993366664,
+      "absolute_standardized_share": 0.09903277458531802,
+      "importance_rmse_increase": -0.005318359661261596
+    }
+  ],
+  "acceleration_sensitivity": {
+    "acceleration_l1_flow_per_adc_count": 0.22169312045455306,
+    "temperature_abs_flow_per_celsius": 0.1488967151357252,
+    "strongest_acceleration_axis": "AccZ",
+    "strongest_axis_coefficient": -0.12727134644276075
+  },
   "models": [
     {
       "name": "baseline_mean",
@@ -143,74 +222,73 @@
       "external_mae": 0.36014170616113744,
       "external_rmse": 1.2629937042988268,
       "external_r2": -0.012643397008580193,
-      "external_event_f1": 0.27049180327868855,
       "feature_count": 0
     },
     {
-      "name": "linear",
-      "train_mae": 0.18457788008553586,
-      "train_rmse": 0.5016993593021878,
-      "train_r2": 0.5119171540710139,
-      "test_mae": 0.7191198609281572,
-      "test_rmse": 1.5005739201252897,
-      "test_r2": 0.11291984731352478,
-      "external_mae": 4.969455370603394,
-      "external_rmse": 5.918458382153702,
-      "external_r2": -21.236752376899634,
-      "external_event_f1": 0.10126582278481013,
-      "feature_count": 6
+      "name": "linear_accel_temp",
+      "train_mae": 0.231081356473382,
+      "train_rmse": 0.7008232205906472,
+      "train_r2": 0.04759116057874202,
+      "test_mae": 0.872577759383395,
+      "test_rmse": 1.8474157006019736,
+      "test_r2": -0.3445511691637926,
+      "external_mae": 7.434128548097898,
+      "external_rmse": 9.153900555065638,
+      "external_r2": -52.19447707712836,
+      "feature_count": 4
     },
     {
-      "name": "ridge",
-      "train_mae": 0.1843980538989512,
-      "train_rmse": 0.5017001309334933,
-      "train_r2": 0.5119156526926039,
-      "test_mae": 0.7188746374993134,
-      "test_rmse": 1.5008540356439222,
-      "test_r2": 0.11258862989554164,
-      "external_mae": 4.932247686003768,
-      "external_rmse": 5.872501532309628,
-      "external_r2": -20.89275622957614,
-      "external_event_f1": 0.10126582278481013,
-      "feature_count": 6
+      "name": "ridge_accel_temp",
+      "train_mae": 0.23077823813197332,
+      "train_rmse": 0.7008243432381437,
+      "train_r2": 0.047588109252175714,
+      "test_mae": 0.8722488910071033,
+      "test_rmse": 1.8469581474997145,
+      "test_r2": -0.34388523634309065,
+      "external_mae": 7.374403065646303,
+      "external_rmse": 9.08106094766469,
+      "external_r2": -51.351284817978865,
+      "feature_count": 4
     },
     {
-      "name": "poly2",
-      "train_mae": 0.16706351016684742,
-      "train_rmse": 0.4706334932257981,
-      "train_r2": 0.5704911532529682,
-      "test_mae": 0.7808865807407067,
-      "test_rmse": 2.1215909358147553,
-      "test_r2": -0.7732557499090416,
-      "external_mae": 4.810621256238047,
-      "external_rmse": 5.993567696522649,
-      "external_r2": -21.804733100787203,
-      "external_event_f1": 0.15000000000000002,
-      "feature_count": 27
+      "name": "poly2_accel_temp",
+      "train_mae": 0.2305844402808888,
+      "train_rmse": 0.7008081621293568,
+      "train_r2": 0.04763208861063262,
+      "test_mae": 0.8717292024635187,
+      "test_rmse": 1.849639690672761,
+      "test_r2": -0.3477903625396992,
+      "external_mae": 7.049514324392511,
+      "external_rmse": 8.617854224035161,
+      "external_r2": -46.14682492294068,
+      "feature_count": 14
     },
     {
-      "name": "lagged_linear",
-      "train_mae": 0.18635912768260043,
-      "train_rmse": 0.4755749978644366,
-      "train_r2": 0.5617081119956129,
-      "test_mae": 0.8302137582648419,
-      "test_rmse": 2.2151930674186464,
-      "test_r2": -0.9331753170494244,
-      "external_mae": 7.70350250558357,
-      "external_rmse": 9.215525868159023,
-      "external_r2": -52.791039582028354,
-      "external_event_f1": 0.0,
-      "feature_count": 12
+      "name": "linear_accel_only",
+      "train_mae": 0.22921172359031072,
+      "train_rmse": 0.7018657565338757,
+      "train_r2": 0.04475546978930678,
+      "test_mae": 0.8502135098257085,
+      "test_rmse": 1.7862144474682702,
+      "test_r2": -0.25694209130877455,
+      "external_mae": 7.594945659118507,
+      "external_rmse": 9.388282669985074,
+      "external_r2": -54.953399575612686,
+      "feature_count": 3
+    },
+    {
+      "name": "linear_temp_only",
+      "train_mae": 0.22340496005409247,
+      "train_rmse": 0.7151719333303909,
+      "train_r2": 0.008192527024777019,
+      "test_mae": 0.8221591916905023,
+      "test_rmse": 1.777714188825264,
+      "test_r2": -0.24500745431703508,
+      "external_mae": 0.4523173025185179,
+      "external_rmse": 1.303387174881529,
+      "external_r2": -0.07845257161084418,
+      "feature_count": 1
     }
   ],
-  "best_model": "baseline_mean",
-  "correlations": {
-    "Raw": -0.23707288408948576,
-    "Delta": 0.6154231107137316,
-    "TempC": 0.07350855320045585,
-    "AccX": -0.13385265770879698,
-    "AccY": 0.032783986485342545,
-    "AccZ": 0.06191907466858632
-  },
-  "synthetic_summary": null
+  "best_model": "baseline_mean"
 }
